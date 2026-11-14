@@ -115,7 +115,7 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
 
 <script>
 (function(){
-  var H='257f874f29625913aa54eedea08f7d55e8ba1308791fc3f7c4d83675080580ad';
+  var H='ce38795a4c52ac787026965180ded33629bbcb5eff8f6efcef922be74b59c35b';
   var L=document.getElementById('lock');
   try{ if(localStorage.getItem('kc_ok')===H){ L.hidden=true; } }catch(e){}
   function sha(t){ return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b),function(x){return ('0'+x.toString(16)).slice(-2)}).join(''); }); }
