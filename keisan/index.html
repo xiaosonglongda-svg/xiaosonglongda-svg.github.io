@@ -88,7 +88,7 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
 </div>
 
 <ul class="note">
-  <li>ドル円レートは、小数点以下を切り捨てて計算します（例：159.74円 → 159円）。金額も1円未満は切り捨てです。</li>
+  <li>ドル円レートは、小数点以下を切り捨てて計算します（例：159.74円 → 159円）。金額は1円未満を四捨五入します（精算と同じ計算です）。</li>
   <li>ここの金額は目安です。実際に受け取る金額は、精算のお知らせで確認してください。</li>
 </ul>
 
@@ -101,10 +101,10 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
   try { var s = JSON.parse(localStorage.getItem('kyuryo') || 'null'); if (s) { if (s.r) $('rate').value = s.r; if (s.p) $('pct').value = s.p; if (s.f) $('fee').checked = true; } } catch (e) {}
   function calc() {
     var r = Math.floor(val($('rate').value) + 1e-9), p = Math.min(val($('pct').value), 100) / 100, t = Math.floor(val($('tok').value));
-    var perSale = 0.05 * r, usd = t * 0.05, sale = Math.floor(usd * r + 1e-9), mine = Math.floor(sale * p + 1e-9);
+    var perSale = 0.05 * r, usd = t * 0.05, sale = Math.round(usd * r + 1e-9), mine = Math.round(sale * p + 1e-9);
     $('rateUsed').textContent = r.toLocaleString('ja-JP') + '円';
-    $('perSale').textContent = yen(Math.floor(perSale * 100 + 1e-9) / 100, 2);
-    $('perMine').textContent = yen(Math.floor(perSale * p * 100 + 1e-9) / 100, 2);
+    $('perSale').textContent = yen(Math.round(perSale * 100 + 1e-9) / 100, 2);
+    $('perMine').textContent = yen(Math.round(perSale * p * 100 + 1e-9) / 100, 2);
     $('usd').textContent = '$' + usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     $('sale').textContent = yen(sale);
     var fee = $('fee').checked ? Math.floor(mine * 0.01 + 1e-9) : 0;
