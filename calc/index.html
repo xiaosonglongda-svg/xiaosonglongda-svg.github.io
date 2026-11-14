@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>報酬かんたん計算</title>
+<meta http-equiv="Cache-Control" content="no-cache"><title>報酬かんたん計算</title>
 <meta property="og:title" content="報酬かんたん計算">
 <meta property="og:description" content="トークン数を入れると、受け取る金額の目安が出ます">
 <meta property="og:type" content="website">
@@ -121,7 +121,7 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
   function sha(t){ return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b),function(x){return ('0'+x.toString(16)).slice(-2)}).join(''); }); }
   document.getElementById('lockF').addEventListener('submit',function(e){
     e.preventDefault();
-    var v=document.getElementById('pw').value.trim();
+    var v=document.getElementById('pw').value.normalize('NFKC').replace(/\s+/g,'').toLowerCase();
     sha('kc:'+v).then(function(x){
       if(x===H){ try{localStorage.setItem('kc_ok',H)}catch(e){} L.hidden=true; }
       else { document.getElementById('lockErr').textContent='パスワードがちがいます'; }
