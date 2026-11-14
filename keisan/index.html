@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta http-equiv="Cache-Control" content="no-cache"><title>報酬かんたん計算</title>
+<meta property="og:title" content="報酬かんたん計算">
+<meta property="og:description" content="トークン数を入れると、受け取る金額の目安が出ます">
+<meta property="og:type" content="website">
+<style>:root{color-scheme:light}[hidden]{display:none!important}#lock{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+#lock .box{width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+#lock input{width:100%;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:12px;padding:14px;font:800 22px var(--font);text-align:center;letter-spacing:.2em}
+#lock button{width:100%;margin-top:12px;border:0;border-radius:12px;padding:14px;background:var(--acc);color:var(--accInk);font:800 16px var(--font)}
+#lockErr{color:#C0392B;font-size:13px;min-height:1.4em;margin-top:8px}
+</style>
+</head>
+<body>
+<style>
+/* 電卓のように上から順に：レート → 報酬率 → トークン → 受け取る金額（いちばん大きく） */
+:root{--bg:#F6F4F8;--card:#FFFFFF;--ink:#1A1622;--sub:#6B6478;--line:#E4DFEA;--acc:#7A3E9D;--accInk:#FFFFFF;--soft:#F0ECF4;--hl:#F3E9FA;
+  --font:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121016;--card:#1B1820;--ink:#EEE9F4;--sub:#A69EB3;--line:#2E2936;--acc:#C99BE6;--accInk:#1E1027;--soft:#241F2B;--hl:#2C2235;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121016;--card:#1B1820;--ink:#EEE9F4;--sub:#A69EB3;--line:#2E2936;--acc:#C99BE6;--accInk:#1E1027;--soft:#241F2B;--hl:#2C2235;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.6;max-width:520px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.n{font-variant-numeric:tabular-nums}
+h1{font-size:22px;margin:0 0 4px;font-weight:800}
+.lead{color:var(--sub);font-size:14px;margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
+.hint{color:var(--sub);font-size:12px;font-weight:500;margin-left:6px}
+.field{display:flex;align-items:center;gap:8px}
+.field input{flex:1;min-width:0;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:12px;padding:14px;font:800 24px var(--font);text-align:right}
+.field input:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.unit{font-weight:800;font-size:18px;min-width:3.2em}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chips button{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:999px;padding:8px 14px;font:700 15px var(--font);cursor:pointer}
+.per{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.per div{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--sub);font-weight:700;min-width:0}
+.per b{display:block;font-size:20px;color:var(--ink)}
+.result{background:var(--hl);border:2px solid var(--acc);border-radius:18px;padding:18px}
+.result .lbl{font-weight:800;color:var(--acc);font-size:15px}
+.result .big{font-size:44px;font-weight:800;line-height:1.2;word-break:break-all}
+.line{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.line span:last-child{font-weight:800}
+.note{color:var(--sub);font-size:12px;margin-top:14px;padding-left:1.2em}
+.note li{margin-bottom:4px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:12px;border-radius:12px;background:var(--acc);color:var(--accInk);font-weight:800;font-size:15px;text-decoration:none}
+</style>
+<div id="lock"><form class="box" id="lockF"><label for="pw">パスワードを入れてください</label><input id="pw" type="text" inputmode="text" autocapitalize="off" autocorrect="off" autocomplete="off"><button>ひらく</button><div id="lockErr"></div></form></div>
+<h1>報酬かんたん計算</h1>
+<p class="lead">トークン数を入れると、受け取る金額の目安がすぐ出ます。</p>
+
+<div class="card">
+  <label for="rate">ドル円レート<span class="hint">1ドルが何円か（わからなければ、そのままでOK）</span></label>
+  <div class="field"><input id="rate" inputmode="decimal" value="155"><span class="unit">円</span></div>
+  <a class="gbtn" href="https://www.google.com/search?q=%E6%9C%AC%E6%97%A5%E3%81%AE%E3%83%89%E3%83%AB%E5%86%86" target="_blank" rel="noopener">今日のドル円を見る（Google）↗</a>
+</div>
+
+<div class="card">
+  <label for="pct">あなたの報酬率</label>
+  <div class="field"><input id="pct" inputmode="decimal" value="50"><span class="unit">%</span></div>
+  <div class="chips" id="pctChips"><button data-p="50">50%</button><button data-p="60">60%</button><button data-p="70">70%</button><button data-p="80">80%</button><button data-p="90">90%</button><button data-p="95">95%</button></div>
+</div>
+
+<div class="card">
+  <div class="line" style="border-top:0;padding-top:0"><span>計算に使うドル円</span><span class="n" id="rateUsed">155円</span></div>
+  <div class="line"><span>1トークンの値段</span><span class="n">0.05ドル ＝ <span id="perSale">7.75円</span></span></div>
+  <div class="line"><span>あなたがもらえる額（1トークンあたり）</span><span class="n" id="perMine">3.88円</span></div>
+</div>
+
+<div class="card">
+  <label for="tok">トークン数</label>
+  <div class="field"><input id="tok" inputmode="text" autocapitalize="off" autocorrect="off" value="1000"><span class="unit">トークン</span></div>
+  <div class="chips" id="tokChips"><button data-t="1000">1,000</button><button data-t="5000">5,000</button><button data-t="10000">10,000</button><button data-t="30000">30,000</button></div>
+</div>
+
+<div class="result">
+  <div class="lbl">受け取る金額（目安）</div>
+  <div class="big n" id="mine">3,875円</div>
+  <div class="line"><span>売上（ドル）</span><span class="n" id="usd">$50.00</span></div>
+  <div class="line"><span>売上（円）</span><span class="n" id="sale">7,750円</span></div>
+</div>
+
+<ul class="note">
+  <li>ドル円レートは、小数点以下を切り捨てて計算します（例：159.74円 → 159円）。金額も1円未満は切り捨てです。</li>
+  <li>ここの金額は目安です。実際に受け取る金額は、精算のお知らせで確認してください。</li>
+</ul>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function val(s) { var t = String(s || '').replace(/[０-９．]/g, function (c) { return c === '．' ? '.' : String.fromCharCode(c.charCodeAt(0) - 65248); }).replace(/[^0-9.]/g, ''); var v = parseFloat(t); return isFinite(v) ? v : 0; }
+  function yen(n, d) { return n.toLocaleString('ja-JP', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }) + '円'; }
+  function save() { try { localStorage.setItem('kyuryo', JSON.stringify({ r: $('rate').value, p: $('pct').value })); } catch (e) {} }
+  try { var s = JSON.parse(localStorage.getItem('kyuryo') || 'null'); if (s) { if (s.r) $('rate').value = s.r; if (s.p) $('pct').value = s.p; } } catch (e) {}
+  function calc() {
+    var r = Math.floor(val($('rate').value) + 1e-9), p = Math.min(val($('pct').value), 100) / 100, t = Math.floor(val($('tok').value));
+    var perSale = 0.05 * r, usd = t * 0.05, sale = Math.floor(usd * r + 1e-9), mine = Math.floor(sale * p + 1e-9);
+    $('rateUsed').textContent = r.toLocaleString('ja-JP') + '円';
+    $('perSale').textContent = yen(Math.floor(perSale * 100 + 1e-9) / 100, 2);
+    $('perMine').textContent = yen(Math.floor(perSale * p * 100 + 1e-9) / 100, 2);
+    $('usd').textContent = '$' + usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    $('sale').textContent = yen(sale);
+    $('mine').textContent = yen(mine);
+    save();
+  }
+  ['rate', 'pct', 'tok'].forEach(function (id) { $(id).addEventListener('input', calc); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { $('pct').value = b.getAttribute('data-p'); calc(); }; });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (b) { b.onclick = function () { $('tok').value = b.getAttribute('data-t'); calc(); }; });
+  calc();
+})();
+</script>
+
+<script>
+(function(){
+  var H='ce38795a4c52ac787026965180ded33629bbcb5eff8f6efcef922be74b59c35b';
+  var L=document.getElementById('lock');
+  try{ if(localStorage.getItem('kc_ok')===H){ L.hidden=true; } }catch(e){}
+  function sha(t){ return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b),function(x){return ('0'+x.toString(16)).slice(-2)}).join(''); }); }
+  document.getElementById('lockF').addEventListener('submit',function(e){
+    e.preventDefault();
+    var v=document.getElementById('pw').value.normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+    sha('kc:'+v).then(function(x){
+      if(x===H){ try{localStorage.setItem('kc_ok',H)}catch(e){} L.hidden=true; }
+      else { document.getElementById('lockErr').textContent='パスワードがちがいます'; }
+    });
+  });
+})();
+</script>
+</body>
+</html>
