@@ -49,6 +49,19 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
 .note{color:var(--sub);font-size:12px;margin-top:14px;padding-left:1.2em}
 .note li{margin-bottom:4px}
 .gbtn{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:12px;border-radius:12px;background:var(--acc);color:var(--accInk);font-weight:800;font-size:15px;text-decoration:none}
+
+.sec{margin-top:28px}
+.sec h2{font-size:18px;font-weight:800;margin:0 0 4px}
+.tag{display:inline-block;font-size:11px;font-weight:800;color:var(--acc);border:1px solid var(--acc);border-radius:999px;padding:1px 8px;margin-bottom:6px}
+.desc{font-size:14px;margin:6px 0 14px;line-height:1.75}
+.idf input{text-align:left;font-size:18px;font-weight:700;letter-spacing:.01em}
+.can{margin:14px 0 0;padding:12px 14px;background:var(--soft);border-radius:12px;font-size:14px}
+.can ul{margin:0;padding-left:1.2em}
+.can li{margin:2px 0;word-break:keep-all;overflow-wrap:anywhere}
+.can b{display:block;margin:0 0 4px;font-size:13px;color:var(--sub)}
+.gbtn2{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:800;font-size:14px;text-decoration:none}
+.err{color:#C0392B;font-size:13px;font-weight:700;min-height:1.2em;margin-top:6px}
+.small{color:var(--sub);font-size:12px;margin:6px 0 0}
 </style>
 <div id="lock"><form class="box" id="lockF"><label for="pw">パスワードを入れてください</label><input id="pw" type="text" inputmode="text" autocapitalize="off" autocorrect="off" autocomplete="off"><button>ひらく</button><div id="lockErr"></div></form></div>
 <h1>報酬かんたん計算</h1>
@@ -92,6 +105,33 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
   <li>ここの金額は目安です。実際に受け取る金額は、精算のお知らせで確認してください。</li>
 </ul>
 
+<section class="sec" aria-labelledby="shT">
+<div class="card">
+  <span class="tag">外部サイト</span>
+  <h2 id="shT">配信データを見る（Strip Hours）</h2>
+  <p class="desc">Strip Hours（ストリップアワーズ）は、StripChatの配信状況を確認できる外部の分析サイトです。配信時間だけでなく、視聴者数・ランキング・配信履歴・配信時間帯・プライベート配信の状況なども確認できます。</p>
+  <label for="shid">あなたのアカウントID<span class="hint">StripChatのユーザー名</span></label>
+  <div class="field idf"><input id="shid" type="text" inputmode="url" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" placeholder="例：momo_chan123"></div>
+  <a class="gbtn" id="shgo" href="https://www.striphours.com/search.php" target="_blank" rel="noopener">自分の配信データを見る ↗</a>
+  <div class="err" id="shErr"></div>
+  <p class="small">IDを入れてボタンを押すと、あなたの配信データのページが開きます。IDは次回から自動で入ります。</p>
+  <div class="can"><b>確認できること</b><ul>
+    <li>直近7日・30日の配信時間</li>
+    <li>日ごと・月ごとの配信の記録（グラフ）</li>
+    <li>配信した時間帯と種類（公開・プライベートなど）</li>
+    <li>配信中の視聴者数・ランキング（トップページの一覧）</li>
+  </ul></div>
+  <a class="gbtn2" href="https://www.striphours.com/" target="_blank" rel="noopener">Strip Hours のトップページを開く ↗</a>
+  <ul class="note">
+    <li>入れるのはユーザー名だけです。パスワードやメールアドレスは入れないでください。</li>
+    <li>StripChat公式のサイトではありません。データは約3分ごとに更新され、時間が日本時間とずれて表示されることがあります（日本時間は＋9時間）。</li>
+    <li>最初に18歳以上かの確認が出たら、進んでください。広告が出ることがあるので、ほかのリンクは押さないでください。</li>
+    <li>「見つからない」と出たときは、IDのつづりを確かめてください。まだデータが集まっていない場合もあります。</li>
+  </ul>
+</div>
+</section>
+
+
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -134,6 +174,33 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
       else { document.getElementById('lockErr').textContent='パスワードがちがいます'; }
     });
   });
+})();
+</script>
+
+<script>
+(function () {
+  var inp = document.getElementById('shid'), go = document.getElementById('shgo'), err = document.getElementById('shErr');
+  var SEARCH = 'https://www.striphours.com/search.php';
+  function clean(v) {
+    var t = String(v || '').normalize('NFKC').trim();
+    var m = t.match(/stripchat\.[a-z.]+\/([^\/?#\s]+)/i); if (m) t = m[1];
+    m = t.match(/striphours\.com\/user\/([^\/?#\s]+?)(?:\.html)?(?:[?#].*)?$/i); if (m) t = m[1];
+    return t.replace(/^@+/, '').replace(/\s+/g, '');
+  }
+  function ok(t) { return /^[A-Za-z0-9_\-.]{2,40}$/.test(t); }
+  function upd() {
+    var t = clean(inp.value);
+    err.textContent = (t && !ok(t)) ? '使えない文字が入っています（英数字・_ - . のみ）' : '';
+    go.href = ok(t) ? 'https://www.striphours.com/user/' + encodeURIComponent(t) + '.html' : SEARCH;
+    try { if (ok(t)) localStorage.setItem('sh_id', t); } catch (e) {}
+  }
+  try { var s = localStorage.getItem('sh_id'); if (s) inp.value = s; } catch (e) {}
+  inp.addEventListener('input', upd);
+  go.addEventListener('click', function (e) {
+    var t = clean(inp.value);
+    if (!ok(t)) { e.preventDefault(); err.textContent = t ? '使えない文字が入っています（英数字・_ - . のみ）' : 'アカウントIDを入れてください'; inp.focus(); }
+  });
+  upd();
 })();
 </script>
 </body>
