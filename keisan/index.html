@@ -134,7 +134,7 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
 <section class="sec" aria-labelledby="scT">
 <div class="card">
   <span class="tag">外部サイト</span>
-  <h2 id="scT">日本人の配信者ランキング（ストチャラ）</h2>
+  <h2 id="scT"><span style="white-space:nowrap">日本人の配信者</span><span style="white-space:nowrap">ランキング</span><span style="white-space:nowrap">（ストチャラ）</span></h2>
   <p class="desc">ストチャラは、StripChatで配信している<b>日本人の女の子だけ</b>を集めたデータサイトです。人気ランキングや、ほかの子の配信の様子を見て、自分の配信の参考にできます。</p>
   <div class="can"><b>見られること</b><ul>
     <li>お気に入り登録数のランキング（全体・今月・今日）</li>
@@ -144,7 +144,7 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
     <li>いま配信中かどうか（オンライン／オフライン）</li>
   </ul></div>
   <a class="gbtn" id="scgo" href="https://stchara.jp/" target="_blank" rel="noopener">自分のページを見る ↗</a>
-  <p class="small" id="scSm">上の「あなたのアカウントID」を入れると、自分のページが開きます。</p>
+  <p class="small" id="scSm">上の Strip Hours の欄に「あなたのアカウントID」を入れると、このボタンで自分のページが開きます。</p>
   <a class="gbtn2" href="https://stchara.jp/" target="_blank" rel="noopener">ストチャラのランキングを見る ↗</a>
   <ul class="note">
     <li>StripChat公式のサイトではありません。</li>
@@ -217,7 +217,7 @@ label{display:block;font-weight:800;font-size:15px;margin-bottom:8px}
     try { if (ok(t)) localStorage.setItem('sh_id', t); } catch (e) {}
     var sg = document.getElementById('scgo'), sm = document.getElementById('scSm');
     if (sg) { sg.href = ok(t) ? 'https://stchara.jp/' + encodeURIComponent(t.toLowerCase()) + '/' : 'https://stchara.jp/';
-      sm.textContent = ok(t) ? t + ' のページが開きます。' : '上の「あなたのアカウントID」を入れると、自分のページが開きます。'; }
+      sm.textContent = ok(t) ? t + ' のページが開きます。' : '上の Strip Hours の欄に「あなたのアカウントID」を入れると、このボタンで自分のページが開きます。'; }
   }
   try { var s = localStorage.getItem('sh_id'); if (s) inp.value = s; } catch (e) {}
   inp.addEventListener('input', upd);
